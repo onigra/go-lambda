@@ -8,7 +8,7 @@ import (
 )
 
 // Handler :
-func Handler() (bool) {
+func Handler() (string, error) {
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
@@ -18,7 +18,7 @@ func Handler() (bool) {
 	service := ssm.New(cfg)
 
 	UpdateParamStore(service)
-	return true
+	return "Success", nil
 }
 
 func main() {
