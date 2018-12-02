@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 )
 
 // GetNewManifestPath :
-func GetNewManifestPath(service *ssm.SSM) (string, error){
+func GetNewManifestPath(service *ssm.SSM) string {
 	keyname := "/app/deploy/new"
 
 	req := service.GetParameterRequest(&ssm.GetParameterInput{
@@ -14,27 +13,35 @@ func GetNewManifestPath(service *ssm.SSM) (string, error){
 	})
 
 	resp, err := req.Send()
-	return *resp.Parameter.Value, err
+	if err != nil {
+		panic("failed to describe new parameter store, " + err.Error())
+	}
+
+	return *resp.Parameter.Value
 }
 
 // UpdateCurrentManifestPath :
-func UpdateCurrentManifestPath(service *ssm.SSM, newManifestPath string) (int64, error){
+func UpdateCurrentManifestPath(service *ssm.SSM, newManifestPath string) bool {
 	keyname := "/app/deploy/current"
 	overwrite := true
 
 	req := service.PutParameterRequest(&ssm.PutParameterInput{
-		Name: &keyname,
-		Value: &newManifestPath,
-		Type: ssm.ParameterTypeString,
+		Name:      &keyname,
+		Value:     &newManifestPath,
+		Type:      ssm.ParameterTypeString,
 		Overwrite: &overwrite,
 	})
 
-	resp, err := req.Send()
-	return *resp.Version, err
+	_, err := req.Send()
+	if err != nil {
+		panic("failed to update current parameter store, " + err.Error())
+	}
+
+	return true
 }
 
 // DeleteNewManifestParam :
-func DeleteNewManifestParam(service *ssm.SSM) (bool, error) {
+func DeleteNewManifestParam(service *ssm.SSM) bool {
 	keyname := "/app/deploy/new"
 
 	req := service.DeleteParameterRequest(&ssm.DeleteParameterInput{
@@ -43,29 +50,17 @@ func DeleteNewManifestParam(service *ssm.SSM) (bool, error) {
 
 	_, err := req.Send()
 	if err != nil {
-		return false, err
-	}
-
-	return true, err
-}
-
-// UpdateParamStore :
-func UpdateParamStore(svc *ssm.SSM) bool {
-	newManifestPath, err := GetNewManifestPath(svc)
-	if err != nil {
-		panic("failed to describe new parameter store, " + err.Error())
-	}
-
-	_, err = UpdateCurrentManifestPath(svc, newManifestPath)
-	if err != nil {
-		panic("failed to update current parameter store, " + err.Error())
-	}
-
-	_, err = DeleteNewManifestParam(svc)
-	if err != nil {
 		panic("failed to delete new parameter store, " + err.Error())
 	}
 
-	fmt.Println("Success")
 	return true
+}
+
+// UpdateParamStore :
+func UpdateParamStore(svc *ssm.SSM) string {
+	newManifestPath := GetNewManifestPath(svc)
+	UpdateCurrentManifestPath(svc, newManifestPath)
+	DeleteNewManifestParam(svc)
+
+	return "Success"
 }

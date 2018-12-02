@@ -17,8 +17,8 @@ func Handler() (string, error) {
 	cfg.Region = endpoints.ApNortheast1RegionID
 	service := ssm.New(cfg)
 
-	UpdateParamStore(service)
-	return "Success", nil
+	result := UpdateParamStore(service)
+	return result, nil
 }
 
 func main() {
