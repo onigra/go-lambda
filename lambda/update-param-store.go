@@ -5,9 +5,7 @@ import (
 )
 
 // GetNewManifestPath :
-func GetNewManifestPath(service *ssm.SSM) string {
-	keyname := "/app/deploy/new"
-
+func GetNewManifestPath(service *ssm.SSM, keyname string) string {
 	req := service.GetParameterRequest(&ssm.GetParameterInput{
 		Name: &keyname,
 	})
@@ -21,8 +19,7 @@ func GetNewManifestPath(service *ssm.SSM) string {
 }
 
 // UpdateCurrentManifestPath :
-func UpdateCurrentManifestPath(service *ssm.SSM, newManifestPath string) bool {
-	keyname := "/app/deploy/current"
+func UpdateCurrentManifestPath(service *ssm.SSM, newManifestPath string, keyname string) bool {
 	overwrite := true
 
 	req := service.PutParameterRequest(&ssm.PutParameterInput{
@@ -41,9 +38,7 @@ func UpdateCurrentManifestPath(service *ssm.SSM, newManifestPath string) bool {
 }
 
 // DeleteNewManifestParam :
-func DeleteNewManifestParam(service *ssm.SSM) bool {
-	keyname := "/app/deploy/new"
-
+func DeleteNewManifestParam(service *ssm.SSM, keyname string) bool {
 	req := service.DeleteParameterRequest(&ssm.DeleteParameterInput{
 		Name: &keyname,
 	})
