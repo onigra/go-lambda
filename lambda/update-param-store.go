@@ -50,12 +50,3 @@ func DeleteNewManifestParam(service *ssm.SSM, keyname string) bool {
 
 	return true
 }
-
-// UpdateParamStore :
-func UpdateParamStore(svc *ssm.SSM) string {
-	newManifestPath := GetNewManifestPath(svc)
-	UpdateCurrentManifestPath(svc, newManifestPath)
-	DeleteNewManifestParam(svc)
-
-	return "Success"
-}
