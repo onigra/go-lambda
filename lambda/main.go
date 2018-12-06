@@ -22,6 +22,19 @@ func ParseDetail(event events.CloudWatchEvent) map[string]interface{} {
 	return detail
 }
 
+// ParseDeployParams :
+func ParseDeployParams(params string) map[string]interface{} {
+	deployParamsBytes := ([]byte)(params)
+	var deployParams map[string]interface{}
+
+	err := json.Unmarshal(deployParamsBytes, &deployParams)
+	if err != nil {
+		panic("deployParams Unmarshal error.")
+	}
+
+	return deployParams
+}
+
 // Handler :
 func Handler(event events.CloudWatchEvent) (string, error) {
 	cfg, err := external.LoadDefaultAWSConfig()
@@ -33,14 +46,13 @@ func Handler(event events.CloudWatchEvent) (string, error) {
 	service := ssm.New(cfg)
 
 	detail := ParseDetail(event)
-	deployParams := detail["parameters"].(map[string]interface{})
+	deployParams := ParseDeployParams(detail["parameters"].(string))
 
 	if detail["status"] == "Success" {
-		newManifestPath := GetNewManifestPath(service, deployParams["newParam"].(string))
-		UpdateCurrentManifestPath(service, newManifestPath, deployParams["currentParam"].(string))
+		newManifestPath := GetNewManifestPath(service, deployParams["newParam"].([]interface{})[0].(string))
+		UpdateCurrentManifestPath(service, newManifestPath, deployParams["currentParam"].([]interface{})[0].(string))
 	}
-
-	DeleteNewManifestParam(service, deployParams["newParam"].(string))
+	DeleteNewManifestParam(service, deployParams["newParam"].([]interface{})[0].(string))
 
 	return "ok", nil
 }
