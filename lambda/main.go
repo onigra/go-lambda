@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -37,6 +38,8 @@ func ParseDeployParams(params string) map[string]interface{} {
 
 // Handler :
 func Handler(event events.CloudWatchEvent) (string, error) {
+	fmt.Println(&event)
+
 	cfg, err := external.LoadDefaultAWSConfig()
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
